@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandito</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: rgb(40, 40, 40);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    cursor: none;
+    user-select: none;
+  }
+  #info {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.4);
+    font-family: monospace;
+    font-size: 13px;
+    text-align: center;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    line-height: 1.6;
+  }
+  body.hide-info #info { opacity: 0; }
+  #toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    color: rgba(255,255,255,0.6);
+    font-family: monospace;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #count {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: rgba(255,255,255,0.3);
+    font-family: monospace;
+    font-size: 12px;
+    pointer-events: none;
+  }
+  body.hide-info #toast, body.hide-info #count { opacity: 0; }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="count"></div>
+<div id="info">
+  <span id="rgb">rgb(40, 40, 40)</span><br>
+  ↑/↓ brightness — Space: log — D: download CSV — Click: toggle UI — Esc: cursor
+</div>
+<script>
+  let gray = 40;
+  const body = document.body;
+  const rgbLabel = document.getElementById('rgb');
+  const toast = document.getElementById('toast');
+  const countEl = document.getElementById('count');
+  const log = [];
+  let toastTimer;
+
+  function update() {
+    body.style.background = `rgb(${gray}, ${gray}, ${gray})`;
+    rgbLabel.textContent = `rgb(${gray}, ${gray}, ${gray})`;
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1200);
+  }
+
+  function updateCount() {
+    countEl.textContent = log.length ? `${log.length} logged` : '';
+  }
+
+  function downloadCSV() {
+    if (!log.length) { showToast('Nothing logged yet'); return; }
+    const header = 'entry,gray_value,rgb,hex,timestamp,note\n';
+    const rows = log.map((r, i) =>
+      `${i + 1},${r.gray},"rgb(${r.gray},${r.gray},${r.gray})",${r.hex},${r.ts},${r.note}`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'bandito-log.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('CSV downloaded');
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp') { gray = Math.min(255, gray + 5); update(); }
+    if (e.key === 'ArrowDown') { gray = Math.max(0, gray - 5); update(); }
+    if (e.key === ' ') {
+      e.preventDefault();
+      const hex = '#' + gray.toString(16).padStart(2, '0').repeat(3);
+      const pct = Math.round((gray / 255) * 100);
+      log.push({ gray, hex, ts: new Date().toISOString(), note: `${pct}% brightness` });
+      updateCount();
+      showToast(`Logged: ${gray} (${pct}%) ${hex}`);
+    }
+    if (e.key === 'd' || e.key === 'D') { downloadCSV(); }
+    if (e.key === 'Escape') { body.style.cursor = 'default'; }
+  });
+
+  body.addEventListener('click', () => body.classList.toggle('hide-info'));
+  setTimeout(() => body.classList.add('hide-info'), 8000);
+</script>
+</body>
+</html>
