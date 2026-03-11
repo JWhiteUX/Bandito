@@ -23,7 +23,7 @@
     font-family: monospace;
     font-size: 13px;
     text-align: center;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, color 0.2s;
     pointer-events: none;
     line-height: 1.6;
   }
@@ -32,11 +32,10 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    color: rgba(255,255,255,0.6);
     font-family: monospace;
     font-size: 12px;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, color 0.2s;
     pointer-events: none;
   }
   #toast.show { opacity: 1; }
@@ -44,10 +43,10 @@
     position: fixed;
     top: 20px;
     left: 20px;
-    color: rgba(255,255,255,0.3);
     font-family: monospace;
     font-size: 12px;
     pointer-events: none;
+    transition: color 0.2s;
   }
   body.hide-info #toast, body.hide-info #count { opacity: 0; }
 </style>
@@ -65,12 +64,27 @@
   const rgbLabel = document.getElementById('rgb');
   const toast = document.getElementById('toast');
   const countEl = document.getElementById('count');
+  const infoEl = document.getElementById('info');
   const log = [];
   let toastTimer;
+
+  function getTextColor(g) {
+    // Switch to dark text above ~50% brightness (gray > 128)
+    return g > 128 ? 'rgba(0,0,0,1)' : 'rgba(255,255,255,0.6)';
+  }
+
+  function getInfoColor(g) {
+    return g > 128 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)';
+  }
 
   function update() {
     body.style.background = `rgb(${gray}, ${gray}, ${gray})`;
     rgbLabel.textContent = `rgb(${gray}, ${gray}, ${gray})`;
+    const textColor = getTextColor(gray);
+    const infoColor = getInfoColor(gray);
+    toast.style.color = textColor;
+    countEl.style.color = infoColor;
+    infoEl.style.color = infoColor;
   }
 
   function showToast(msg) {
@@ -116,6 +130,9 @@
 
   body.addEventListener('click', () => body.classList.toggle('hide-info'));
   setTimeout(() => body.classList.add('hide-info'), 8000);
+
+  // Init colors
+  update();
 </script>
 </body>
 </html>
