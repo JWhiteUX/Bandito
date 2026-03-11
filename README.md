@@ -2,6 +2,9 @@
 
 A minimal browser-based utility for diagnosing vertical banding and panel uniformity defects on monitors. Sweep through grayscale brightness levels and log where banding is visible, then export results as CSV for documentation or warranty claims.
 
+<img width="975" height="765" alt="image" src="https://github.com/user-attachments/assets/f836f053-c86e-4744-851d-d8a9dbea26ce" />
+
+
 ## Usage
 
 Open `index.html` in any browser and go fullscreen (`F11`).
